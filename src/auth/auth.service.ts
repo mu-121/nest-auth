@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { User } from './schemas/user.schema';
+import { User, UserSchema } from './schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { EmailService } from './email.service';
@@ -177,4 +177,15 @@ export class AuthService {
       },
     };
   }
+
+async getUsers() {
+  const users = await this.userModel.find();
+
+  if (users.length === 0) {
+    throw new UnauthorizedException('No users found');
+  }
+
+  return users;
+}
+
 }
