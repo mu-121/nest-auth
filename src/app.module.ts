@@ -5,6 +5,9 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
+import { SocketModule } from './socket/socket.module';
+import { ChatModule } from './chat/chat.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
@@ -15,8 +18,10 @@ import { UploadModule } from './upload/upload.module';
     AuthModule,
 
     UploadModule,
-    
 
+    SocketModule,
+
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
