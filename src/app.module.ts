@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { SocketModule } from './socket/socket.module';
 import { ChatModule } from './chat/chat.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,8 @@ import { ChatModule } from './chat/chat.module';
     MongooseModule.forRoot(
       'mongodb+srv://usman:Usman%40123@cluster0.jyo22pp.mongodb.net/nestAuth',
     ),
+
+    RedisModule,
 
     AuthModule,
 

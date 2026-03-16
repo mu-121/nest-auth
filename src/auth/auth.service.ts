@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -7,12 +7,16 @@ import { User, UserSchema } from './schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { EmailService } from './email.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private emailService: EmailService,
+    private redisService: RedisService,
   ) {}
 
   async register(body: RegisterDto) {
@@ -178,14 +182,26 @@ export class AuthService {
     };
   }
 
-async getUsers() {
-  const users = await this.userModel.find();
+  async getUsers() {
+    // 1️⃣ Try to get users from Redis first
+    const cachedUsers = await this.redisService.client.get('all_users');
+    if (cachedUsers) {
+      this.logger.log('Fetching users from Redis cache');
+      return JSON.parse(cachedUsers);
+    }
 
-  if (users.length === 0) {
-    throw new UnauthorizedException('No users found');
+    // 2️⃣ If not in cache, fetch from MongoDB
+    this.logger.log('Fetching users from Database');
+    const users = await this.userModel.find();
+
+    if (users.length === 0) {
+      throw new UnauthorizedException('No users found');
+    }
+
+    // 3️⃣ Store result in Redis for future requests (cache for 1 hour)
+    await this.redisService.client.set('all_users', JSON.stringify(users), { EX: 3600 });
+
+    return users;
   }
-
-  return users;
-}
 
 }
